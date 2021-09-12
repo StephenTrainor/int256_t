@@ -35,9 +35,9 @@ int main(void) {
     display_int256_t(otherInt);
     display_int256_t(temp);
 
-    // free(bigInt);
-    // free(otherInt);
-    // free(temp);
+    clear(temp);
+
+    display_int256_t(temp);
 
     return 0;
 }

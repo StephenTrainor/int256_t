@@ -6,17 +6,6 @@
 static int256_t** bigInts = NULL;
 static size_t allocations = 0;
 
-// static char* itoa_c(uint32_t val, int base) { // From https://www.strudel.org.uk/itoa/
-// 	static char buf[32] = {0};
-// 	int i = 30;
-	
-// 	for(; val && i ; --i, val /= base)
-	
-// 		buf[i] = "0123456789abcdef"[val % base];
-	
-// 	return &buf[i+1];
-// }
-
 int256_t* init_int256_t(void) {
     int256_t* temp = malloc(sizeof(int256_t));
 
@@ -37,12 +26,7 @@ int256_t* init_int256_t(void) {
     bigInts[allocations] = temp;
     allocations++;
 
-    temp->positive = true;
-    // memset(bigInt->v, 0, DIGITS);
-
-    for (int i = 0; i < DIGITS; i++) {
-        temp->v[i] = 0x0;
-    }
+    clear(temp);
 
     return temp;
 }
@@ -58,6 +42,9 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
     if (n < 0) {
         n *= -1;
         temp->positive = !bigInt->positive;
+    }
+    else {
+        temp->positive = bigInt->positive;
     }
 
     int i = 0;
@@ -85,6 +72,8 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
 }
 
 void clear(int256_t *restrict bigInt) {
+    bigInt->positive = true;
+
     memset(bigInt->v, 0, DIGITS);
 }
 
@@ -208,6 +197,10 @@ void display_int256_t(const int256_t *restrict bigInt) {
         i--;
     }
 
+    if (i < 0) {
+        printf("0");
+    }
+
     for (; i >= 0; i--) {
         printf("%lu", bigInt->v[i]);
     }
@@ -248,7 +241,7 @@ bool overflow(const int256_t *restrict bigInt) {
     return false;
 }
 
-void free_int256_t(void) {
+void free_int256_t(void) { // Idea from CS50's teardown function: https://github.com/cs50/libcs50/blob/main/src/cs50.c#:~:text=static%20void%20teardown(void)
     if (bigInts != NULL) {
         for (size_t i = 0; i < allocations; i++) {
             free(bigInts[i]);
