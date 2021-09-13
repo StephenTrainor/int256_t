@@ -5,7 +5,12 @@ LIBS=-lm
 
 big: $(REQ)
 	find . -type f -exec touch {} +
-	$(CC) int256_t.c -c -o int256_t.o $(CFLAGS)
-	$(CC) main.c -c -o main.o $(CFLAGS)
-	$(CC) main.o int256_t.o -o big $(CFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -c -o int256_t.o int256_t.c
+	$(CC) $(CFLAGS) -c -o main.o main.c
+	$(CC) $(CFLAGS) main.o int256_t.o -o big $(LIBS)
 	./big
+
+clean: main.o int256_t.o
+	rm main.o
+	rm int256_t.o
+	

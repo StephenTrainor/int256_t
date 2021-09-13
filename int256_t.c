@@ -6,7 +6,7 @@
 static int256_t** bigInts = NULL;
 static size_t allocations = 0;
 
-int256_t* init_int256_t(void) {
+int256_t* decl_int256_t(void) {
     int256_t* temp = malloc(sizeof(int256_t));
 
     if (!temp) {
@@ -31,31 +31,37 @@ int256_t* init_int256_t(void) {
     return temp;
 }
 
-int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
-    int256_t* temp = init_int256_t();
+int256_t* init_int256_t(const int256_t *restrict bigInt) {
+    int256_t* temp = decl_int256_t();
 
     if (!temp) {
-        printf("NULL pointer.");
         return NULL;
     }
+
+    set_int256_t(temp, bigInt);
+
+    return temp;
+}
+
+int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
+    int256_t* temp = decl_int256_t();
+    
+    if (!temp) {
+        printf("NULL pointer.");
+        return init_int256_t(bigInt);
+    }
+    
+    set_int256_t(temp, bigInt);
 
     if (n < 0) {
         n *= -1;
         temp->positive = !bigInt->positive;
     }
-    else {
-        temp->positive = bigInt->positive;
-    }
 
     int i = 0;
-    
-    for (; i < DIGITS; i++) {
-        temp->v[i] = bigInt->v[i];
-    }
-
     int carry = 0;
 
-    for (i = 0; i < DIGITS; i++) {
+    for (; i < DIGITS; i++) {
         temp->v[i] *= n;
         temp->v[i] += carry;
         carry = temp->v[i] / 10;
@@ -64,8 +70,80 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
 
     if (carry || overflow(temp)) {
         printf("Overflow encountered when multiplying.");
-        free(temp);
-        return NULL;
+        return init_int256_t(bigInt);
+    }
+
+    return temp;
+}
+
+int256_t* add_n(const int256_t *restrict bigInt, uint64_t n) {
+    if (n <= 0) {
+        printf("add_n() only accepts positive integers (uint64_t).\n");
+        return init_int256_t(bigInt);
+    }
+
+    int256_t* temp = decl_int256_t();
+
+    if (!temp) {
+        printf("NULL pointer.");
+        return init_int256_t(bigInt);
+    }
+
+    int i = 0;
+
+    for (; i < DIGITS; i++) {
+        temp->v[i] = bigInt->v[i];
+    }
+
+    int carry = 0;
+    uint64_t divisor = 1;
+
+    for (; i < DIGITS; i++, divisor *= 10) {
+        temp->v[i] += (n % 10) / divisor;
+        temp->v[i] += carry;
+        carry = temp->v[i] / 10;
+        temp->v[i] %= 10;
+    }
+
+    if (overflow(temp)) {
+        printf("Overflow encountered when adding.");
+        return init_int256_t(bigInt);
+    }
+
+    return temp;
+}
+
+int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict a) {
+    if (!bigInt->positive ^ !a->positive) {
+        printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n");
+        return init_int256_t(bigInt);
+    }
+
+    int256_t* temp = decl_int256_t();
+
+    if (!temp) {
+        printf("NULL pointer.");
+        return init_int256_t(bigInt);
+    }
+    
+    int i = 0;
+
+    for (; i < DIGITS; i++) {
+        temp->v[i] = bigInt->v[i];
+    }
+
+    int carry = 0;
+
+    for (i = 0; i < DIGITS; i++) {
+        temp->v[i] += a->v[i];
+        temp->v[i] += carry;
+        carry = temp->v[i] / 10;
+        temp->v[i] %= 10;
+    }
+
+    if (overflow(temp)) {
+        printf("Overflow encountered when adding.");
+        return init_int256_t(bigInt);
     }
 
     return temp;
@@ -97,93 +175,13 @@ void set_n(int256_t *restrict bigInt, int64_t n) {
 void set_int256_t(int256_t *restrict bigInt, const int256_t *restrict a) {
     clear(bigInt);
 
-    bigInt->positive = true;
-    if (!a->positive) {
-        bigInt->positive = false;
-    }
+    bigInt->positive = a->positive;
 
     int i = 0;
 
     for (; i < DIGITS; i++) {
         bigInt->v[i] = a->v[i];
     }
-}
-
-void add_n(int256_t *restrict bigInt, uint64_t n) {
-    if (n <= 0) {
-        printf("add_n() only accepts positive integers (uint64_t).\n");
-        return;
-    }
-
-    int256_t* temp = malloc(sizeof(int256_t));
-
-    if (!temp) {
-        printf("NULL pointer.");
-        return;
-    }
-
-    int i = 0;
-
-    for (; i < DIGITS; i++) {
-        temp->v[i] = bigInt->v[i];
-    }
-
-    int carry = 0;
-    uint64_t divisor = 1;
-
-    for (; i < DIGITS; i++, divisor *= 10) {
-        temp->v[i] += (n % 10) / divisor;
-        temp->v[i] += carry;
-        carry = temp->v[i] / 10;
-        temp->v[i] %= 10;
-    }
-
-    if (overflow(temp)) {
-        printf("Overflow encountered when adding.");
-        free(temp);
-        return;
-    }
-
-    free(bigInt);
-    bigInt = temp;
-}
-
-void add_int256_t(int256_t* bigInt, const int256_t *restrict a) {
-    if (!bigInt->positive ^ !a->positive) {
-        printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n");
-        return;
-    }
-
-    int256_t* temp = malloc(sizeof(int256_t));
-
-    if (!temp) {
-        printf("NULL pointer.");
-        return;
-    }
-    
-    int i = 0;
-
-    for (; i < DIGITS; i++) {
-        temp->v[i] = bigInt->v[i];
-    }
-
-    int carry = 0;
-
-    for (i = 0; i < DIGITS; i++) {
-        temp->v[i] += a->v[i];
-        temp->v[i] += carry;
-        carry = temp->v[i] / 10;
-        temp->v[i] %= 10;
-    }
-
-    if (overflow(temp)) {
-        printf("Overflow encountered when adding.");
-        free(temp);
-        return;
-    }
-
-    free(bigInt);
-    bigInt = temp;
 }
 
 void display_int256_t(const int256_t *restrict bigInt) {
