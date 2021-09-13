@@ -4,7 +4,7 @@ An experimental implementation of bigIntegers with C
 ### Usage
 Simply include the header file via `#include "int256_t.h"` or `#include "path/to/int256_t.h"`
 
-Additionally, have `int256_t.c` in the same directory as the header file
+Additionally, have `int256_t.c` in the same directory as the header file, or adjust the includes accordingly
 
 ### Limits
 When `DIGITS` is 78, int256_t supports at least -2^256 to 2^256 - 1
