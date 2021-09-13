@@ -22,7 +22,6 @@ int256_t* decl_int256_t(void) {
     }
 
     bigInts = tmp;
-
     bigInts[allocations] = temp;
     allocations++;
 
