@@ -7,6 +7,10 @@ static int256_t** bigInts = NULL;
 static size_t allocations = 0;
 
 int256_t* decl_int256_t(void) {
+    if (!allocations) {
+        atexit(free_int256_t); // I'm not that fancy
+    }
+    
     int256_t* temp = malloc(sizeof(int256_t));
 
     if (!temp) {
@@ -14,7 +18,7 @@ int256_t* decl_int256_t(void) {
         return NULL;
     }
 
-    int256_t** tmp = realloc(bigInts, sizeof(int256_t) * (allocations + 1));
+    int256_t** tmp = realloc(bigInts, sizeof(int256_t) * (allocations + 1)); // Grow tmp to hold another int256_t
 
     if (!tmp) {
         free(temp);
@@ -22,7 +26,7 @@ int256_t* decl_int256_t(void) {
     }
 
     bigInts = tmp;
-    bigInts[allocations] = temp;
+    bigInts[allocations] = temp; // store int256_t to be freed later
     allocations++;
 
     clear(temp);
@@ -49,9 +53,9 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
         return init_int256_t(bigInt);
     }
     
-    set_int256_t(temp, bigInt);
+    set_int256_t(temp, bigInt); // Copy value into temp int256_t in case of an overflow
 
-    if (n < 0) {
+    if (n < 0) { // handle negatives
         n *= -1;
         temp->positive = !bigInt->positive;
     }
@@ -66,7 +70,7 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
         temp->v[i] %= 10;
     }
 
-    if (carry || overflow(temp)) {
+    if (carry || overflow(temp)) { // carry is non-zero in the case of an overflow
         printf("Overflow encountered when multiplying.");
         return init_int256_t(bigInt);
     }
@@ -75,11 +79,6 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
 }
 
 int256_t* add_n(const int256_t *restrict bigInt, uint64_t n) {
-    if (n < 0) {
-        printf("add_n() only accepts positive integers (uint64_t).\n");
-        return init_int256_t(bigInt);
-    }
-
     int256_t* temp = decl_int256_t();
 
     if (!temp) {
@@ -93,13 +92,13 @@ int256_t* add_n(const int256_t *restrict bigInt, uint64_t n) {
     uint64_t divisor = 1;
 
     for (; i < 20; i++, divisor *= 10) {
-        temp->v[i] += (n / divisor) % 10;
+        temp->v[i] += (n / divisor) % 10; // Get each digit of n individually
         temp->v[i] += carry;
         carry = temp->v[i] / 10;
         temp->v[i] %= 10;
     }
 
-    if (carry || overflow(temp)) {
+    if (carry || overflow(temp)) { // carry is non-zero in the case of an overflow
         printf("Overflow encountered when adding.");
         return init_int256_t(bigInt);
     }
@@ -108,8 +107,8 @@ int256_t* add_n(const int256_t *restrict bigInt, uint64_t n) {
 }
 
 int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict a) {
-    if (!bigInt->positive ^ !a->positive) {
-        printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n");
+    if (!bigInt->positive ^ !a->positive) { // Wow, hackerman
+        printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n"); // This code can't handle subtractions
         return init_int256_t(bigInt);
     }
 
@@ -120,22 +119,19 @@ int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict
         return init_int256_t(bigInt);
     }
     
+    set_int256_t(temp, bigInt);
+
     int i = 0;
-
-    for (; i < DIGITS; i++) {
-        temp->v[i] = bigInt->v[i];
-    }
-
     int carry = 0;
 
-    for (i = 0; i < DIGITS; i++) {
+    for (; i < DIGITS; i++) {
         temp->v[i] += a->v[i];
         temp->v[i] += carry;
         carry = temp->v[i] / 10;
         temp->v[i] %= 10;
     }
 
-    if (overflow(temp)) {
+    if (carry || overflow(temp)) { // carry is non-zero in the case of an overflow
         printf("Overflow encountered when adding.");
         return init_int256_t(bigInt);
     }
@@ -144,7 +140,7 @@ int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict
 }
 
 void clear(int256_t *restrict bigInt) {
-    // memset(bigInt->v, 0, sizeof(uint64_t) * DIGITS - 7);
+    // memset(bigInt->v, 0, sizeof(uint64_t) * DIGITS - 7); // Same as below
     memset(bigInt->v, 0, sizeof(uint64_t) * DIGITS);
     bigInt->positive = true;
 }
@@ -153,7 +149,7 @@ void set_n(int256_t *restrict bigInt, int64_t n) {
     clear(bigInt);
 
     bigInt->positive = true;
-    if (n < 0) {
+    if (n < 0) { // handle negatives
         n *= -1;
         bigInt->positive = false;
     }
@@ -162,7 +158,7 @@ void set_n(int256_t *restrict bigInt, int64_t n) {
     int64_t divisor = 1;
 
     for (; i < 20; i++, divisor *= 10) {
-        bigInt->v[i] = (n / divisor) % 10;
+        bigInt->v[i] = (n / divisor) % 10; // Get each digit of n individually
     }
 }
 
@@ -179,24 +175,24 @@ void set_int256_t(int256_t *restrict bigInt, const int256_t *restrict a) {
 }
 
 void display_int256_t(const int256_t *restrict bigInt) {
-    if (!bigInt->positive) {
-        printf("-");
-    }
-
     int i = DIGITS - 1;
 
-    while (!bigInt->v[i]) {
+    while (!bigInt->v[i]) { // Skip over the leading zeros that may exist
         i--;
     }
 
     if (i < 0) {
-        printf("0");
+        printf("0"); // If we skipped over every zero, then it's zero
+        return;
+    }
+    
+    if (!bigInt->positive) {
+        printf("-");
     }
 
     for (; i >= 0; i--) {
         printf("%lu", bigInt->v[i]);
     }
-    printf("\n"); // Remove later
 }
 
 bool overflow(const int256_t *restrict bigInt) {
@@ -205,7 +201,7 @@ bool overflow(const int256_t *restrict bigInt) {
         return true;
     }
 
-    if (!bigInt->v[DIGITS - 1]) {
+    if (!bigInt->v[DIGITS - 1]) { // Lazy check for if we are close to 2^256 - 1
         return false;
     }
 
@@ -216,7 +212,7 @@ bool overflow(const int256_t *restrict bigInt) {
         3, 5, 8, 7, 0, 9, 7, 8, 6, 8, 0, 0, 5, 
         8, 9, 0, 7, 5, 3, 2, 4, 5, 9, 1, 6, 1, 
         3, 7, 3, 2, 9, 8, 0, 2, 9, 7, 5, 1, 1
-    };
+    }; // The digits of 2^256 - 1 in reverse, see le.py
 
     if (!bigInt->positive) {
         MAX_SEQ[0]++;
@@ -233,11 +229,17 @@ bool overflow(const int256_t *restrict bigInt) {
     return false;
 }
 
-void free_int256_t(void) { // Idea from CS50's teardown function: https://github.com/cs50/libcs50/blob/main/src/cs50.c#:~:text=static%20void%20teardown(void)
-    if (bigInts != NULL) {
+/*
+Idea from:
+
+https://github.com/cs50/libcs50/blob/main/src/cs50.c#:~:text=static%20void%20teardown(void)
+https://stackoverflow.com/questions/24930162/exists-a-way-to-free-memory-in-atexit-or-similar-without-using-global-variables
+*/
+void free_int256_t(void) {
+    if (bigInts) {
         for (size_t i = 0; i < allocations; i++) {
-            free(bigInts[i]);
+            free(bigInts[i]); // Free every int256_t that was previously stored
         }
-        free(bigInts);
+        free(bigInts); 
     }
 }
