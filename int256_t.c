@@ -34,6 +34,18 @@ int256_t* decl_int256_t(void) {
     return temp;
 }
 
+int256_t* init_n(const int64_t n) {
+    int256_t* temp = decl_int256_t();
+
+    if (!temp) {
+        return NULL;
+    }
+
+    set_n(temp, n);
+
+    return temp;
+}
+
 int256_t* init_int256_t(const int256_t *restrict bigInt) {
     int256_t* temp = decl_int256_t();
 
@@ -78,7 +90,12 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
     return temp;
 }
 
-int256_t* add_n(const int256_t *restrict bigInt, uint64_t n) {
+int256_t* add_n(const int256_t *restrict bigInt, int64_t n) {
+    if (bigInt->positive ^ (n >= 0)) { // Wow, hackerman
+        printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n"); // This code can't handle subtractions
+        return init_int256_t(bigInt);
+    }
+
     int256_t* temp = decl_int256_t();
 
     if (!temp) {
@@ -107,7 +124,7 @@ int256_t* add_n(const int256_t *restrict bigInt, uint64_t n) {
 }
 
 int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict a) {
-    if (!bigInt->positive ^ !a->positive) { // Wow, hackerman
+    if (bigInt->positive ^ a->positive) { // Wow, hackerman x2
         printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n"); // This code can't handle subtractions
         return init_int256_t(bigInt);
     }
