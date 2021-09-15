@@ -14,11 +14,10 @@ typedef struct {
 int256_t* decl_int256_t(void);
 int256_t* init_n(const int64_t n);
 int256_t* init_int256_t(const int256_t *restrict bigInt);
+int256_t* to_int256_t(const int64_t n);
 int256_t* multiply_n(const int256_t *restrict bigInt, const uint32_t n);
-int256_t* add_n(const int256_t *restrict bigInt, const int64_t n);
 int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict a);
 void clear(int256_t *restrict bigInt);
-void set_n(int256_t *restrict bigInt, int64_t n);
 void set_int256_t(int256_t *restrict bigInt, const int256_t *restrict a);
 void display_int256_t(const int256_t *restrict bigInt);
 bool overflow(const int256_t *restrict bigInt);

@@ -10,7 +10,7 @@ int main(void) {
         return 1;
     }
 
-    set_n(bigInt, 1);
+    set_int256_t(bigInt, to_int256_t(1));
 
     for (int i = 1; i <= 50; i++) {
         bigInt = multiply_n(bigInt, i);
@@ -19,7 +19,7 @@ int main(void) {
     printf("Factorial of 50:\n");
     display_int256_t(bigInt);
 
-    set_n(bigInt, 1);
+    set_int256_t(bigInt, to_int256_t(1));
 
     for (int i = 1; i <= 256; i++) {
         bigInt = multiply_n(bigInt, 2);

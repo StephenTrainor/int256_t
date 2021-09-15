@@ -6,6 +6,8 @@
 static int256_t** bigInts = NULL;
 static size_t allocations = 0;
 
+void set_n(int256_t *restrict bigInt, int64_t n); // Prevents implicit declaration warning
+
 int256_t* decl_int256_t(void) {
     if (!allocations) {
         atexit(free_int256_t); // I'm not that fancy
@@ -58,6 +60,18 @@ int256_t* init_int256_t(const int256_t *restrict bigInt) {
     return temp;
 }
 
+int256_t* to_int256_t(const int64_t n) {
+    int256_t* temp = decl_int256_t();
+
+    if (!temp) {
+        return NULL;
+    }
+
+    set_n(temp, n);
+
+    return temp;
+}
+
 int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
     int256_t* temp = decl_int256_t();
     
@@ -84,39 +98,6 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
 
     if (carry || overflow(temp)) { // carry is non-zero in the case of an overflow
         printf("Overflow encountered when multiplying.");
-        return init_int256_t(bigInt);
-    }
-
-    return temp;
-}
-
-int256_t* add_n(const int256_t *restrict bigInt, int64_t n) {
-    if (bigInt->positive ^ (n >= 0)) { // Wow, hackerman
-        printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n"); // This code can't handle subtractions
-        return init_int256_t(bigInt);
-    }
-
-    int256_t* temp = decl_int256_t();
-
-    if (!temp) {
-        return init_int256_t(bigInt);
-    }
-
-    set_int256_t(temp, bigInt);
-
-    int i = 0;
-    int carry = 0;
-    uint64_t divisor = 1;
-
-    for (; i < 20; i++, divisor *= 10) {
-        temp->v[i] += (n / divisor) % 10; // Get each digit of n individually
-        temp->v[i] += carry;
-        carry = temp->v[i] / 10;
-        temp->v[i] %= 10;
-    }
-
-    if (carry || overflow(temp)) { // carry is non-zero in the case of an overflow
-        printf("Overflow encountered when adding.");
         return init_int256_t(bigInt);
     }
 
