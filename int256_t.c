@@ -37,13 +37,11 @@ int256_t* decl_int256_t(void) {
 }
 
 int256_t* init_n(const int64_t n) {
-    int256_t* temp = decl_int256_t();
+    int256_t* temp = init_int256_t(to_int256_t(n));
 
     if (!temp) {
         return NULL;
     }
-
-    set_n(temp, n);
 
     return temp;
 }

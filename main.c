@@ -10,7 +10,7 @@ int main(void) {
         return 1;
     }
 
-    set_int256_t(bigInt, to_int256_t(1));
+    bigInt = init_n(1);
 
     for (int i = 1; i <= 50; i++) {
         bigInt = multiply_n(bigInt, i);

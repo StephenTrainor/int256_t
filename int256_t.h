@@ -8,7 +8,7 @@
 
 typedef struct {
     bool positive;
-    uint64_t v[DIGITS]; // enough for at least 2^256-1 (When DIGITS >= 78)
+    uint64_t v[DIGITS]; // enough for at least 2^256-1, when DIGITS >= 78
 } int256_t;
 
 int256_t* decl_int256_t(void);
