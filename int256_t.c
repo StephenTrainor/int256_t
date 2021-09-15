@@ -103,7 +103,7 @@ int256_t* multiply_n(const int256_t *restrict bigInt, uint32_t n) {
 }
 
 int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict a) {
-    if (bigInt->positive ^ a->positive) { // Wow, hackerman x2
+    if (bigInt->positive ^ a->positive) { // Wow, hackerman
         printf("add_int256_t() only accepts int256_t's that are both positive or both negative.\n"); // This code can't handle subtractions
         return init_int256_t(bigInt);
     }
