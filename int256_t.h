@@ -20,6 +20,7 @@ int256_t* add_int256_t(const int256_t *restrict bigInt, const int256_t *restrict
 void clear(int256_t *restrict bigInt);
 void set_int256_t(int256_t *restrict bigInt, const int256_t *restrict a);
 void display_int256_t(const int256_t *restrict bigInt);
+void int256_t_swap(int256_t* a, int256_t* b);
 bool overflow(const int256_t *restrict bigInt);
 void free_int256_t(void);
 

@@ -191,6 +191,12 @@ void display_int256_t(const int256_t *restrict bigInt) {
     }
 }
 
+void int256_t_swap(int256_t* a, int256_t* b) {
+    int256_t temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
 bool overflow(const int256_t *restrict bigInt) {
     if (!bigInt) {
         printf("NULL int256_t encountered.\n");
